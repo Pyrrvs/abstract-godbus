@@ -72,12 +72,11 @@ func (d *dbusAbstraction) ExportMethods(m interface{}, p dbus.ObjectPath, i stri
 	d.conn.Export(m, p, i)
 }
 
-//ListenSignals method is usable to set a new 'listener'. This listener will fill a channel each time a signal is send
+//InitSignalsListeningFor method is usable to set a new 'listener'. This listener will fill a channel each time a signal is send
 //Parameters :
 //              p -> string           : the ObjectPath of the sender
 //              n -> string           : the name of the sender
 //              i -> string           : the interface of the sender
-
 func (d *dbusAbstraction) InitSignalsListeningFor(p string, n string, i string) {
 	d.conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, "type='signal',path='"+p+"',interface='"+i+"', sender='"+n+"'")
 }
