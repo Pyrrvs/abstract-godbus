@@ -49,3 +49,12 @@ func (d *dbusAbstraction) InitSession(s SessionType, n string) error {
 	}
 	return nil
 }
+
+//ExportMethods method is usable each time the user want to export an interface over the bus
+//Parameters :
+//              m -> interface{}     : the interface containing the methods the user wants to export
+//              p -> dbus.ObjectPath : the objectPath in which the user wants to export methods
+//              i -> string          : the interface in which the user wants to export methods
+func (d *dbusAbstraction) ExportMethods(m interface{}, p dbus.ObjectPath, i string) {
+	d.conn.Export(m, p, i)
+}
