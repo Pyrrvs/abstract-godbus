@@ -78,6 +78,6 @@ func (d *dbusAbstraction) ExportMethods(m interface{}, p dbus.ObjectPath, i stri
 //              n -> string           : the name of the sender
 //              i -> string           : the interface of the sender
 
-func (d *dbusAbstraction) InitSignalsFromSender(p string, n string, i string) {
+func (d *dbusAbstraction) InitSignalsListeningFor(p string, n string, i string) {
 	d.conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, "type='signal',path='"+p+"',interface='"+i+"', sender='"+n+"'")
 }
