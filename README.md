@@ -17,3 +17,10 @@ Abstract-godbus
 > - Stop listening to a sender
 > - Emit a signal
 > - a lot of other things ..
+
+LICENSE
+===================
+
+This project is licensed under MIT License.
+
+Please see the LICENSE file for more informations.
