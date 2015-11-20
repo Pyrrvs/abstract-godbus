@@ -1,17 +1,19 @@
-# abstract-godbus
-A little abstraction to facilitate the use of dbus in golang.
+Abstract-godbus
+===================
 
-Not handling all cases for the moment.
 
-DONE : 
-init a session
-call a method
-export methods
-listen a signal
+**A little abstraction to facilitate the use of dbus in golang.**
 
-TODO : 
-stop listening to a signal
-stop listening to a sender
-send a signal
+*Not handling all cases for the moment.*
 
-WIP..
+> **DONE:**
+> - Init a Session
+> - Listen to a signal
+> - Call a dbus method
+> - Export dbus methods
+
+> **TODO:**
+> - Stop listening to a signal
+> - Stop listening to a sender
+> - Emit a signal
+> - a lot of other things ..
