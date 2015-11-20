@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/nyks06/dbus"
@@ -89,6 +89,11 @@ func (d *dbusAbstraction) ExportMethods(m interface{}, p dbus.ObjectPath, i stri
 //              n -> string           : the name of the sender
 //              i -> string           : the interface of the sender
 //              s -> string           : the signal sent
+//Steps :
+// 							We check if we already listen to this sender (if yes, the name should be in our d.sigsenders slice)
+//								If we already listen to it, we check if we already listen this signal
+//									If we already listen to the signal we quit, else we create the channel and the entry in the map
+//								else we call the AddMatch method to listen this sender and we create the channel and the entry in the map
 func (d *dbusAbstraction) ListenSignalFromSender(p string, n string, i string, s string) {
 	listened := false
 	for _, elem := range d.sigsenders {
@@ -97,17 +102,26 @@ func (d *dbusAbstraction) ListenSignalFromSender(p string, n string, i string, s
 		}
 	}
 	if listened {
-
-		//check if the entry already exist in the map [entry is sender.member]
-		//yes : do nothing
-		//no  : create the entry and the channel
+		if _, ok := d.sigmap[d.getGeneratedName(n, s)]; !ok {
+			d.sigmap[d.getGeneratedName(n, s)] = make(chan *dbusAbsSignal)
+		}
 	} else {
-		_ = append(d.sigsenders, n)
+		d.sigsenders = append(d.sigsenders, n)
 		d.conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, "type='signal',path='"+p+"',interface='"+i+"', sender='"+n+"'")
-		//add the specific channel and entry to the map
+		d.sigmap[d.getGeneratedName(n, s)] = make(chan *dbusAbsSignal)
 	}
 }
 
+//Simple util method to concatenate the sender name and the method/signal name to obtain the form "sender.member"
+func (d *dbusAbstraction) getGeneratedName(s string, m string) string {
+	var buffer bytes.Buffer
+	buffer.WriteString(s)
+	buffer.WriteString(".")
+	buffer.WriteString(m)
+	return buffer.String()
+}
+
+//Simple util method to split the form "sender.member" and obtain the member part (split with the last dot and get the rightmost entry)
 func (d *dbusAbstraction) getSignalName(s string) string {
 	tmp := strings.Split(s, ".")
 	return tmp[len(tmp)-1]
@@ -118,14 +132,11 @@ func (d *dbusAbstraction) getSignalName(s string) string {
 func (d *dbusAbstraction) signalsHandler() {
 	d.conn.Signal(d.recv)
 	for v := range d.recv {
-
 		if _, ok := d.sigmap[v.Name]; ok {
-			// d.sigmap[t.signame] = make(chan *dbusSignalAbstraction, 1024)
 			var t dbusAbsSignal
 			t.recv = v
 			t.signame = v.Name
 			d.sigmap[v.Name] <- &t
-			fmt.Println(v)
 		}
 	}
 }
