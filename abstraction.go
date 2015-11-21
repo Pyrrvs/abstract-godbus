@@ -45,16 +45,21 @@ func (d *Abstraction) GetConn() *dbus.Conn {
 //## INIT
 //##################
 
+//New function permit to initialize a new pointer to Abstraction used after ...
+func New() *Abstraction {
+	return &Abstraction{}
+}
+
 //InitSession method is the first callable. It permits to init a session (Session or System) over the bus and request a name on it.
 //Parameters :
 //              s -> dbus.SessionType : equal to SESSION or SYSTEM
 //              n -> string           : name you want to request over the bus (or "")
-func (d *Abstraction) InitSession(s SessionType, n string) (*Abstraction, error) {
+func (d *Abstraction) InitSession(s SessionType, n string) error {
 	var err error
 	var conn *dbus.Conn
 
 	if d.Conn != nil {
-		return nil, errors.New("[DBUS ABSTRACTION ERROR - initSession - Session already initialized]")
+		return errors.New("[DBUS ABSTRACTION ERROR - initSession - Session already initialized]")
 	}
 
 	if s == SESSION {
@@ -63,16 +68,16 @@ func (d *Abstraction) InitSession(s SessionType, n string) (*Abstraction, error)
 		conn, err = dbus.SystemBus()
 	}
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if n != "" {
 		reply, err := conn.RequestName(n, dbus.NameFlagDoNotQueue)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if reply != dbus.RequestNameReplyPrimaryOwner {
-			return nil, errors.New("[DBUS ABSTRACTION ERROR - initSession - name already taken]")
+			return errors.New("[DBUS ABSTRACTION ERROR - initSession - name already taken]")
 		}
 	}
 
@@ -80,7 +85,7 @@ func (d *Abstraction) InitSession(s SessionType, n string) (*Abstraction, error)
 	d.Sigmap = make(map[string]chan *AbsSignal)
 	d.Recv = make(chan *dbus.Signal, 1024)
 	go d.signalsHandler()
-	return d, nil
+	return nil
 }
 
 //##################
