@@ -24,21 +24,21 @@ const (
 
 //AbsSignal type is a copy of dbus.Signal type, used to parse received signals
 type AbsSignal struct {
-	recv    *dbus.Signal
-	signame string
+	Recv    *dbus.Signal
+	Signame string
 }
 
 //Abstraction type contains the necessary vars and is used as receiver of our methods
 type Abstraction struct {
-	conn       *dbus.Conn
-	recv       chan *dbus.Signal
-	sigmap     map[string]chan *AbsSignal
-	sigsenders []string
+	Conn       *dbus.Conn
+	Recv       chan *dbus.Signal
+	Sigmap     map[string]chan *AbsSignal
+	Sigsenders []string
 }
 
 //GetConn method return the current instance of *dbus.Conn
 func (d *Abstraction) GetConn() *dbus.Conn {
-	return d.conn
+	return d.Conn
 }
 
 //##################
@@ -53,7 +53,7 @@ func (d *Abstraction) InitSession(s SessionType, n string) error {
 	var err error
 	var conn *dbus.Conn
 
-	if d.conn != nil {
+	if d.Conn != nil {
 		return errors.New("[DBUS ABSTRACTION ERROR - initSession - Session already initialized]")
 	}
 
@@ -76,9 +76,9 @@ func (d *Abstraction) InitSession(s SessionType, n string) error {
 		}
 	}
 
-	d.conn = conn
-	d.sigmap = make(map[string]chan *AbsSignal)
-	d.recv = make(chan *dbus.Signal, 1024)
+	d.Conn = conn
+	d.Sigmap = make(map[string]chan *AbsSignal)
+	d.Recv = make(chan *dbus.Signal, 1024)
 	go d.signalsHandler()
 	return nil
 }
@@ -110,9 +110,9 @@ func (d *Abstraction) getSignalName(s string) string {
 //Parameters :
 //              s -> string  : signal you want to get
 func (d *Abstraction) GetSignal(s string) ([]interface{}, error) {
-	if _, ok := d.sigmap[s]; ok {
-		t := <-d.sigmap[s]
-		return t.recv.Body, nil
+	if _, ok := d.Sigmap[s]; ok {
+		t := <-d.Sigmap[s]
+		return t.Recv.Body, nil
 	}
 	return nil, errors.New("[DBUS ABSTRACTION] - error - not listened signal")
 }
@@ -121,8 +121,8 @@ func (d *Abstraction) GetSignal(s string) ([]interface{}, error) {
 //Parameters :
 //              s -> string  : signal corresponding to the channel you want to listen
 func (d *Abstraction) GetChannel(s string) chan *AbsSignal {
-	if _, ok := d.sigmap[s]; ok {
-		return d.sigmap[s]
+	if _, ok := d.Sigmap[s]; ok {
+		return d.Sigmap[s]
 	}
 	return nil
 }
@@ -137,7 +137,7 @@ func (d *Abstraction) GetChannel(s string) chan *AbsSignal {
 //              p -> dbus.ObjectPath : the objectPath in which the user wants to export methods
 //              i -> string          : the interface in which the user wants to export methods
 func (d *Abstraction) ExportMethods(m interface{}, p dbus.ObjectPath, i string) {
-	d.conn.Export(m, p, i)
+	d.Conn.Export(m, p, i)
 }
 
 //CallMethod method permit to call a method over the bus. It returns nil if the method has been called and call.Err if an error occured.
@@ -153,7 +153,7 @@ func (d *Abstraction) ExportMethods(m interface{}, p dbus.ObjectPath, i string) 
 // 		Body -> []interface{} : args we give in our call to the dbus method
 // 		Err -> error          : an error variable, filled if an error occured during the call
 func (d *Abstraction) CallMethod(p dbus.ObjectPath, n string, i string, m string, params string) error {
-	obj := d.conn.Object(n, p)
+	obj := d.Conn.Object(n, p)
 	call := obj.Call(d.getGeneratedName(i, m), 0, params)
 	if call.Err != nil {
 		return call.Err
@@ -178,32 +178,32 @@ func (d *Abstraction) CallMethod(p dbus.ObjectPath, n string, i string, m string
 //		else we call the AddMatch method to listen this sender and we create the channel and the entry in the map
 func (d *Abstraction) ListenSignalFromSender(p string, n string, i string, s string) {
 	listened := false
-	for _, elem := range d.sigsenders {
+	for _, elem := range d.Sigsenders {
 		if elem == n {
 			listened = true
 		}
 	}
 	if listened {
-		if _, ok := d.sigmap[d.getGeneratedName(n, s)]; !ok {
-			d.sigmap[d.getGeneratedName(n, s)] = make(chan *AbsSignal)
+		if _, ok := d.Sigmap[d.getGeneratedName(n, s)]; !ok {
+			d.Sigmap[d.getGeneratedName(n, s)] = make(chan *AbsSignal)
 		}
 	} else {
-		d.sigsenders = append(d.sigsenders, n)
-		d.conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, "type='signal',path='"+p+"',interface='"+i+"', sender='"+n+"'")
-		d.sigmap[d.getGeneratedName(n, s)] = make(chan *AbsSignal, 1024)
+		d.Sigsenders = append(d.Sigsenders, n)
+		d.Conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, "type='signal',path='"+p+"',interface='"+i+"', sender='"+n+"'")
+		d.Sigmap[d.getGeneratedName(n, s)] = make(chan *AbsSignal, 1024)
 	}
 }
 
 //signalsHandler method is called in the InitSession method. It permits to handle our signals and put them in the map
 //This method run in a special goroutines. It read each signal comming from a registered sender and put it in the sigmap
 func (d *Abstraction) signalsHandler() {
-	d.conn.Signal(d.recv)
-	for v := range d.recv {
-		if _, ok := d.sigmap[v.Name]; ok {
+	d.Conn.Signal(d.Recv)
+	for v := range d.Recv {
+		if _, ok := d.Sigmap[v.Name]; ok {
 			var t AbsSignal
-			t.recv = v
-			t.signame = v.Name
-			d.sigmap[v.Name] <- &t
+			t.Recv = v
+			t.Signame = v.Name
+			d.Sigmap[v.Name] <- &t
 		}
 	}
 }
