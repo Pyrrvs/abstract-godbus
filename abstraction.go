@@ -1,4 +1,4 @@
-package main
+package abstractdbus
 
 import (
 	"bytes"
@@ -70,7 +70,7 @@ func (d *dbusAbstraction) InitSession(s SessionType, n string) error {
 	d.conn = conn
 	d.sigmap = make(map[string]chan *dbusAbsSignal)
 	d.recv = make(chan *dbus.Signal, 1024)
-	// go d.signalsHandler()
+	go d.signalsHandler()
 	return nil
 }
 
