@@ -49,12 +49,12 @@ func (d *Abstraction) GetConn() *dbus.Conn {
 //Parameters :
 //              s -> dbus.SessionType : equal to SESSION or SYSTEM
 //              n -> string           : name you want to request over the bus (or "")
-func (d *Abstraction) InitSession(s SessionType, n string) error {
+func (d *Abstraction) InitSession(s SessionType, n string) (*Abstraction, error) {
 	var err error
 	var conn *dbus.Conn
 
 	if d.Conn != nil {
-		return errors.New("[DBUS ABSTRACTION ERROR - initSession - Session already initialized]")
+		return nil, errors.New("[DBUS ABSTRACTION ERROR - initSession - Session already initialized]")
 	}
 
 	if s == SESSION {
@@ -63,16 +63,16 @@ func (d *Abstraction) InitSession(s SessionType, n string) error {
 		conn, err = dbus.SystemBus()
 	}
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if n != "" {
 		reply, err := conn.RequestName(n, dbus.NameFlagDoNotQueue)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if reply != dbus.RequestNameReplyPrimaryOwner {
-			return errors.New("[DBUS ABSTRACTION ERROR - initSession - name already taken]")
+			return nil, errors.New("[DBUS ABSTRACTION ERROR - initSession - name already taken]")
 		}
 	}
 
@@ -80,7 +80,7 @@ func (d *Abstraction) InitSession(s SessionType, n string) error {
 	d.Sigmap = make(map[string]chan *AbsSignal)
 	d.Recv = make(chan *dbus.Signal, 1024)
 	go d.signalsHandler()
-	return nil
+	return d, nil
 }
 
 //##################
