@@ -1,4 +1,4 @@
-package abstractdbus
+package main
 
 import (
 	"bytes"
@@ -70,7 +70,7 @@ func (d *dbusAbstraction) InitSession(s SessionType, n string) error {
 	d.conn = conn
 	d.sigmap = make(map[string]chan *dbusAbsSignal)
 	d.recv = make(chan *dbus.Signal, 1024)
-	go d.signalsHandler()
+	// go d.signalsHandler()
 	return nil
 }
 
@@ -108,7 +108,7 @@ func (d *dbusAbstraction) ListenSignalFromSender(p string, n string, i string, s
 	} else {
 		d.sigsenders = append(d.sigsenders, n)
 		d.conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, "type='signal',path='"+p+"',interface='"+i+"', sender='"+n+"'")
-		d.sigmap[d.getGeneratedName(n, s)] = make(chan *dbusAbsSignal)
+		d.sigmap[d.getGeneratedName(n, s)] = make(chan *dbusAbsSignal, 1024)
 	}
 }
 
@@ -120,7 +120,7 @@ func (d *dbusAbstraction) ListenSignalFromSender(p string, n string, i string, s
 //              m -> string           : the method name
 //							params -> string			: the method params (string for the moment)
 //Response :
-//The response is stored in the call struct that contains following usefull fields :
+//The response is stored in the call struct that contains following useful fields :
 // 							Args -> []interface{} : args we give in our call to the dbus method
 // 							Body -> []interface{} : args we give in our call to the dbus method
 // 							Err -> error          : an error variable, filled if an error occured during the call
@@ -146,6 +146,17 @@ func (d *dbusAbstraction) getGeneratedName(s string, m string) string {
 func (d *dbusAbstraction) getSignalName(s string) string {
 	tmp := strings.Split(s, ".")
 	return tmp[len(tmp)-1]
+}
+
+//GetSignal method return the first signal from the channel that correspond to the signal given as parameter
+//Parameters :
+//              s -> string  : signal you want to get
+func (d *dbusAbstraction) GetSignal(s string) ([]interface{}, error) {
+	if _, ok := d.sigmap[s]; ok {
+		t := <-d.sigmap[s]
+		return t.recv.Body, nil
+	}
+	return nil, errors.New("[DBUS ABSTRACTION] - error - not listened signal")
 }
 
 //signalsHandler method is called in the InitSession method. It permits to handle our signals and put them in the map
