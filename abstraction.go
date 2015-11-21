@@ -24,6 +24,7 @@ type dbusAbsSignal struct {
 	signame string
 }
 
+//The dbusAbstraction type contains the necessary vars and is used as receiver of our methods
 type dbusAbstraction struct {
 	conn       *dbus.Conn
 	recv       chan *dbus.Signal
@@ -90,10 +91,10 @@ func (d *dbusAbstraction) ExportMethods(m interface{}, p dbus.ObjectPath, i stri
 //              i -> string           : the interface of the sender
 //              s -> string           : the signal sent
 //Steps :
-// 							We check if we already listen to this sender (if yes, the name should be in our d.sigsenders slice)
-//								If we already listen to it, we check if we already listen this signal
-//									If we already listen to the signal we quit, else we create the channel and the entry in the map
-//								else we call the AddMatch method to listen this sender and we create the channel and the entry in the map
+// 		we check if we already listen to this sender (if yes, the name should be in our d.sigsenders slice)
+//		If we already listen to it, we check if we already listen this signal
+//		Else if we already listen to the signal we quit, else we create the channel and the entry in the map
+//		else we call the AddMatch method to listen this sender and we create the channel and the entry in the map
 func (d *dbusAbstraction) ListenSignalFromSender(p string, n string, i string, s string) {
 	listened := false
 	for _, elem := range d.sigsenders {
@@ -118,12 +119,12 @@ func (d *dbusAbstraction) ListenSignalFromSender(p string, n string, i string, s
 //              n -> string           : the name of the sender
 //              i -> string           : the interface of the sender
 //              m -> string           : the method name
-//							params -> string			: the method params (string for the moment)
+//		params -> string      : the method params (string for the moment)
 //Response :
 //The response is stored in the call struct that contains following useful fields :
-// 							Args -> []interface{} : args we give in our call to the dbus method
-// 							Body -> []interface{} : args we give in our call to the dbus method
-// 							Err -> error          : an error variable, filled if an error occured during the call
+// 		Args -> []interface{} : args we give in our call to the dbus method
+// 		Body -> []interface{} : args we give in our call to the dbus method
+// 		Err -> error          : an error variable, filled if an error occured during the call
 func (d *dbusAbstraction) CallMethod(p dbus.ObjectPath, n string, i string, m string, params string) error {
 	obj := d.conn.Object(n, p)
 	call := obj.Call(d.getGeneratedName(i, m), 0, params)
@@ -157,6 +158,16 @@ func (d *dbusAbstraction) GetSignal(s string) ([]interface{}, error) {
 		return t.recv.Body, nil
 	}
 	return nil, errors.New("[DBUS ABSTRACTION] - error - not listened signal")
+}
+
+//GetChannel method return the channel associated to the signal the user give as parameter
+//Parameters :
+//              s -> string  : signal corresponding to the channel you want to listen
+func (d *dbusAbstraction) GetChannel(s string) chan *dbusAbsSignal {
+	if _, ok := d.sigmap[s]; ok {
+		return d.sigmap[s]
+	}
+	return nil
 }
 
 //signalsHandler method is called in the InitSession method. It permits to handle our signals and put them in the map
