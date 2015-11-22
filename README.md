@@ -4,8 +4,6 @@ Abstract-godbus
 
 **A little abstraction to facilitate the use of dbus in golang.**
 
-*Not handling all cases for the moment.*
-
 > **DONE:**
 > - Init a Session
 > - Listen to a signal
@@ -14,9 +12,9 @@ Abstract-godbus
 
 > **TODO:**
 > - Stop listening to a signal
-> - Stop listening to a sender
 > - Emit a signal
-> - a lot of other things ..
+> - Introspection
+> - Asynchronous signal listening (using Task ID)
 
 LICENSE
 ===================
