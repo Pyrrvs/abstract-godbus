@@ -1,4 +1,4 @@
-package abstractdbus
+B1;3409;0cpackage abstractdbus
 
 import (
 	"bytes"
@@ -170,7 +170,7 @@ func (d *Abstraction) CallMethod(p dbus.ObjectPath, n string, i string, m string
 //## SIGNALS MANAGEMENT
 //##################
 
-//ListenSignalFromSender method is usable to set a new 'listener'. This listener will fill a channel each time a signal is send
+//ListenSignal method is usable to set a new 'listener'. This listener will fill a channel each time a signal is send
 //Parameters :
 //              p -> string           : the ObjectPath of the sender
 //              n -> string           : the name of the sender
@@ -181,7 +181,7 @@ func (d *Abstraction) CallMethod(p dbus.ObjectPath, n string, i string, m string
 //		If we already listen to it, we check if we already listen this signal
 //		Else if we already listen to the signal we quit, else we create the channel and the entry in the map
 //		else we call the AddMatch method to listen this sender and we create the channel and the entry in the map
-func (d *Abstraction) ListenSignalFromSender(p string, n string, i string, s string) {
+func (d *Abstraction) ListenSignal(p string, n string, i string, s string) {
 	listened := false
 	for _, elem := range d.Sigsenders {
 		if elem == n {
@@ -197,6 +197,19 @@ func (d *Abstraction) ListenSignalFromSender(p string, n string, i string, s str
 		d.Conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, "type='signal',path='"+p+"',interface='"+i+"', sender='"+n+"'")
 		d.Sigmap[d.getGeneratedName(n, s)] = make(chan *AbsSignal, 1024)
 	}
+}
+
+
+//StopListeningSignal method check if the signal is or not in the map of signals listened. If yes, it delete the entry in the map.
+//Parameters :
+//              s -> string  : signal corresponding to the channel you want to stop listening
+//		i -> string  : interface of the sender associated to the signal
+func (d *Abstraction) StopListeningSignal(i string, s string) err {
+	if _, ok := d.Sigmap[i + "." + s]; ok {
+		delete(d.Sigmap, i + "." + s)
+		return nil
+	}
+	return errors.New("[DBUS ABSTRACTION] - ERROR - the map is nil.")
 }
 
 //signalsHandler method is called in the InitSession method. It permits to handle our signals and put them in the map
