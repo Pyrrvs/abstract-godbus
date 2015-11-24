@@ -199,14 +199,13 @@ func (d *Abstraction) SignalStartListening(p string, n string, i string, s strin
 	}
 }
 
-
 //SignalStopListening method check if the signal is or not in the map of signals listened. If yes, it delete the entry in the map.
 //Parameters :
 //              s -> string  : signal corresponding to the channel you want to stop listening
 //		i -> string  : interface of the sender associated to the signal
-func (d *Abstraction) SignalStopListening(i string, s string) err {
-	if _, ok := d.Sigmap[i + "." + s]; ok {
-		delete(d.Sigmap, i + "." + s)
+func (d *Abstraction) SignalStopListening(i string, s string) error {
+	if _, ok := d.Sigmap[i+"."+s]; ok {
+		delete(d.Sigmap, i+"."+s)
 		return nil
 	}
 	return errors.New("[DBUS ABSTRACTION] - ERROR - the map is nil.")
@@ -214,7 +213,7 @@ func (d *Abstraction) SignalStopListening(i string, s string) err {
 
 //SignalCheckListening method return true or false wether the signal is listened or not
 func (d *Abstraction) SignalCheckListening(i string, s string) bool {
-	if _, ok := d.Sigmap[i + "." + s]; ok {
+	if _, ok := d.Sigmap[i+"."+s]; ok {
 		return true
 	}
 	return false
