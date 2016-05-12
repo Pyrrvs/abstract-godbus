@@ -8,6 +8,8 @@ import (
 	"github.com/nyks06/dbus"
 )
 
+//This package provides a simple abstraction to use with the go-dbus implementation
+
 //##################
 //## TYPES AND VARS
 //##################
