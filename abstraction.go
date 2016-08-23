@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/nyks06/dbus"
+	"github.com/Nyks06/dbus"
 )
 
 //##################
