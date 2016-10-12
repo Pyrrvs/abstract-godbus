@@ -147,23 +147,19 @@ func (d *Abstraction) ExportMethods(m interface{}, p dbus.ObjectPath, i string) 
 
 //CallMethod method permit to call a method over the bus. It returns nil if the method has been called and call.Err if an error occured.
 //Parameters :
-//              p -> dbus.ObjectPath  : the ObjectPath of the sender
-//              n -> string           : the name of the sender
-//              i -> string           : the interface of the sender
-//              m -> string           : the method name
-//		params -> string      : the method params (string for the moment)
+//              p -> dbus.ObjectPath  		: the ObjectPath of the sender
+//              n -> string           		: the name of the sender
+//              i -> string           		: the interface of the sender
+//              m -> string           		: the method name
+//							params -> ...interface{}  : the method params
 //Response :
 //The response is stored in the call struct that contains following useful fields :
 // 		Args -> []interface{} : args we give in our call to the dbus method
 // 		Body -> []interface{} : args we give in our call to the dbus method
 // 		Err -> error          : an error variable, filled if an error occured during the call
-func (d *Abstraction) CallMethod(p dbus.ObjectPath, n string, i string, m string, params string) error {
+func (d *Abstraction) CallMethod(p dbus.ObjectPath, n string, i string, m string, params ...interface{}) *dbus.Call {
 	obj := d.Conn.Object(n, p)
-	call := obj.Call(d.getGeneratedName(i, m), 0, params)
-	if call.Err != nil {
-		return call.Err
-	}
-	return nil
+	return obj.Call(d.getGeneratedName(i, m), 0, params...)
 }
 
 //##################
