@@ -1,4 +1,4 @@
-package abstractdbus
+package AbstractDBus
 
 import (
 	"bytes"
