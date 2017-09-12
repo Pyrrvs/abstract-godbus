@@ -180,18 +180,18 @@ func (d *Abstraction) CallMethod(p dbus.ObjectPath, n string, i string, m string
 func (d *Abstraction) ListenSignalFromSender(p string, n string, i string, s string) {
 	listened := false
 	for _, elem := range d.Sigsenders {
-		if elem == n {
+		if elem == i {
 			listened = true
 		}
 	}
 	if listened {
-		if _, ok := d.Sigmap[d.getGeneratedName(n, s)]; !ok {
-			d.Sigmap[d.getGeneratedName(n, s)] = make(chan *AbsSignal)
+		if _, ok := d.Sigmap[d.getGeneratedName(i, s)]; !ok {
+			d.Sigmap[d.getGeneratedName(i, s)] = make(chan *AbsSignal)
 		}
 	} else {
-		d.Sigsenders = append(d.Sigsenders, n)
+		d.Sigsenders = append(d.Sigsenders, i)
 		d.Conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, "type='signal',path='"+p+"',interface='"+i+"', sender='"+n+"'")
-		d.Sigmap[d.getGeneratedName(n, s)] = make(chan *AbsSignal, 1024)
+		d.Sigmap[d.getGeneratedName(i, s)] = make(chan *AbsSignal, 1024)
 	}
 }
 
