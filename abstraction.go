@@ -190,7 +190,11 @@ func (d *Abstraction) ListenSignalFromSender(p string, n string, i string, s str
 		}
 	} else {
 		d.Sigsenders = append(d.Sigsenders, i)
-		d.Conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, "type='signal',path='"+p+"',interface='"+i+"', sender='"+n+"'")
+		if n == "" {
+			d.Conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, "type='signal',path='"+p+"',interface='"+i+"'")
+		} else {
+			d.Conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, "type='signal',path='"+p+"',interface='"+i+"', sender='"+n+"'")
+		}
 		d.Sigmap[d.getGeneratedName(i, s)] = make(chan *AbsSignal, 1024)
 	}
 }
