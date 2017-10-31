@@ -212,3 +212,12 @@ func (d *Abstraction) signalsHandler() {
 		}
 	}
 }
+
+// CloseSession method stops the goroutine running the signalsHandler function, and deletes internal data
+func (d *Abstraction) CloseSession() {
+	for k, v := range d.Sigmap {
+		delete(d.Sigmap, k)
+		close(v)
+	}
+	d.Conn.RemoveSignal(d.Recv)
+}
