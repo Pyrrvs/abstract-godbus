@@ -28,6 +28,17 @@ type AbsSignal struct {
 	Signame string
 }
 
+type IAbstraction interface {
+	GetConn() *dbus.Conn
+	InitSession(SessionType, string) error
+	GetSignal(string) ([]interface{}, error)
+	GetChannel(string) chan *AbsSignal
+	ExportMethods(interface{}, dbus.ObjectPath, string)
+	CallMethod(dbus.ObjectPath, string, string, string, ...interface{}) *dbus.Call
+	ListenSignalFromSender(string, string, string, string)
+	CloseSession()
+}
+
 //Abstraction type contains the necessary vars and is used as receiver of our methods
 type Abstraction struct {
 	Conn       *dbus.Conn
