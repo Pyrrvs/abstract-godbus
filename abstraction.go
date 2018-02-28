@@ -12,16 +12,6 @@ import (
 //## TYPES AND VARS
 //##################
 
-//The SessionType type is a int based type used to define consts below (SESSION & SYSTEM)
-type SessionType int
-
-const (
-	//SESSION Contant is used in initSession to let the user create a sessionBus
-	SESSION SessionType = iota
-	//SYSTEM Contant is used in initSession to let the user create a sessionBus
-	SYSTEM SessionType = iota
-)
-
 //AbsSignal type is a copy of dbus.Signal type, used to parse received signals
 type AbsSignal struct {
 	Recv    *dbus.Signal
@@ -30,7 +20,7 @@ type AbsSignal struct {
 
 type IAbstraction interface {
 	GetConn() *dbus.Conn
-	InitSession(SessionType, string) error
+	InitSession(string) error
 	GetSignal(string) ([]interface{}, error)
 	GetChannel(string) chan *AbsSignal
 	ExportMethods(interface{}, dbus.ObjectPath, string)
@@ -65,23 +55,17 @@ func New() *Abstraction {
 //Parameters :
 //              s -> dbus.SessionType : equal to SESSION or SYSTEM
 //              n -> string           : name you want to request over the bus (or "")
-func (d *Abstraction) InitSession(s SessionType, n string) error {
+func (d *Abstraction) InitSession(n string) error {
 	var err error
 	var conn *dbus.Conn
 
 	if d.Conn != nil {
 		return errors.New("[DBUS ABSTRACTION ERROR - initSession - Session already initialized]")
 	}
-
-	if s == SESSION {
-		conn, err = dbus.SessionBus()
-	} else {
-		conn, err = dbus.SystemBus()
-	}
+	conn, err = GetDbus()
 	if err != nil {
 		return err
 	}
-
 	if n != "" {
 		reply, err := conn.RequestName(n, dbus.NameFlagDoNotQueue)
 		if err != nil {
