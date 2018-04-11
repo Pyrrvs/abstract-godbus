@@ -215,4 +215,5 @@ func (d *Abstraction) CloseSession() {
 		close(v)
 	}
 	d.Conn.RemoveSignal(d.Recv)
+	d.Conn.Close()
 }
